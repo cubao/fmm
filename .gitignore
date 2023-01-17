@@ -95,3 +95,4 @@ sync.sh
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 *.pyc
+mr.txt
