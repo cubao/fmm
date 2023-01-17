@@ -56,9 +56,9 @@ typedef uint64_t H3Index;
 
 /* library version numbers generated from VERSION file */
 // clang-format off
-#define H3_VERSION_MAJOR 
-#define H3_VERSION_MINOR 
-#define H3_VERSION_PATCH 
+#define H3_VERSION_MAJOR
+#define H3_VERSION_MINOR
+#define H3_VERSION_PATCH
 // clang-format on
 
 /** Maximum number of cell boundary vertices; worst case is pentagon:
@@ -69,23 +69,26 @@ typedef uint64_t H3Index;
 /** @struct GeoCoord
     @brief latitude/longitude in radians
 */
-typedef struct {
-    double lat;  ///< latitude in radians
-    double lon;  ///< longitude in radians
+typedef struct
+{
+    double lat; ///< latitude in radians
+    double lon; ///< longitude in radians
 } GeoCoord;
 
 /** @struct GeoBoundary
     @brief cell boundary in latitude/longitude
 */
-typedef struct {
-    int numVerts;                          ///< number of vertices
-    GeoCoord verts[MAX_CELL_BNDRY_VERTS];  ///< vertices in ccw order
+typedef struct
+{
+    int numVerts;                         ///< number of vertices
+    GeoCoord verts[MAX_CELL_BNDRY_VERTS]; ///< vertices in ccw order
 } GeoBoundary;
 
 /** @struct Geofence
  *  @brief similar to GeoBoundary, but requires more alloc work
  */
-typedef struct {
+typedef struct
+{
     int numVerts;
     GeoCoord *verts;
 } Geofence;
@@ -93,16 +96,18 @@ typedef struct {
 /** @struct GeoPolygon
  *  @brief Simplified core of GeoJSON Polygon coordinates definition
  */
-typedef struct {
-    Geofence geofence;  ///< exterior boundary of the polygon
-    int numHoles;       ///< number of elements in the array pointed to by holes
-    Geofence *holes;    ///< interior boundaries (holes) in the polygon
+typedef struct
+{
+    Geofence geofence; ///< exterior boundary of the polygon
+    int numHoles;      ///< number of elements in the array pointed to by holes
+    Geofence *holes;   ///< interior boundaries (holes) in the polygon
 } GeoPolygon;
 
 /** @struct GeoMultiPolygon
  *  @brief Simplified core of GeoJSON MultiPolygon coordinates definition
  */
-typedef struct {
+typedef struct
+{
     int numPolygons;
     GeoPolygon *polygons;
 } GeoMultiPolygon;
@@ -111,7 +116,8 @@ typedef struct {
  *  @brief A coordinate node in a linked geo structure, part of a linked list
  */
 typedef struct LinkedGeoCoord LinkedGeoCoord;
-struct LinkedGeoCoord {
+struct LinkedGeoCoord
+{
     GeoCoord vertex;
     LinkedGeoCoord *next;
 };
@@ -120,7 +126,8 @@ struct LinkedGeoCoord {
  *  @brief A loop node in a linked geo structure, part of a linked list
  */
 typedef struct LinkedGeoLoop LinkedGeoLoop;
-struct LinkedGeoLoop {
+struct LinkedGeoLoop
+{
     LinkedGeoCoord *first;
     LinkedGeoCoord *last;
     LinkedGeoLoop *next;
@@ -130,7 +137,8 @@ struct LinkedGeoLoop {
  *  @brief A polygon node in a linked geo structure, part of a linked list.
  */
 typedef struct LinkedGeoPolygon LinkedGeoPolygon;
-struct LinkedGeoPolygon {
+struct LinkedGeoPolygon
+{
     LinkedGeoLoop *first;
     LinkedGeoLoop *last;
     LinkedGeoPolygon *next;
@@ -141,9 +149,10 @@ struct LinkedGeoPolygon {
  *
  * Each axis is spaced 120 degrees apart.
  */
-typedef struct {
-    int i;  ///< i component
-    int j;  ///< j component
+typedef struct
+{
+    int i; ///< i component
+    int j; ///< j component
 } CoordIJ;
 
 /** @defgroup geoToH3 geoToH3
@@ -586,7 +595,7 @@ int H3_EXPORT(experimentalLocalIjToH3)(H3Index origin, const CoordIJ *ij,
 /** @} */
 
 #ifdef __cplusplus
-}  // extern "C"
+} // extern "C"
 #endif
 
 #endif
