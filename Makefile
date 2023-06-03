@@ -1,4 +1,5 @@
 PROJECT_SOURCE_DIR ?= $(abspath ./)
+PROJECT_NAME ?= $(shell basename $(PROJECT_SOURCE_DIR))
 BUILD_DIR ?= $(PROJECT_SOURCE_DIR)/build
 INSTALL_DIR ?= $(BUILD_DIR)/install
 NUM_JOB ?= 2
@@ -39,6 +40,15 @@ test_in_linux:
 	docker run --rm -w `pwd` -v `pwd`:`pwd` -v `pwd`/build/linux:`pwd`/build -it $(DOCKER_TAG_LINUX) bash
 test_in_fmm:
 	docker run --rm -w `pwd` -v `pwd`:`pwd` -v `pwd`/build/debug:`pwd`/build -it $(DOCKER_TAG_FMM) bash
+
+DEV_CONTAINER_NAME ?= $(USER)_$(subst /,_,$(PROJECT_NAME)____$(PROJECT_SOURCE_DIR))
+DEV_CONTAINER_IMAG ?= $(DOCKER_TAG_FMM)
+test_in_dev_container:
+	docker ps | grep $(DEV_CONTAINER_NAME) \
+		&& docker exec -it $(DEV_CONTAINER_NAME) bash \
+		|| docker run --rm --name $(DEV_CONTAINER_NAME) \
+		--network host --security-opt seccomp=unconfined \
+		-v `pwd`:`pwd` -w `pwd` -it $(DEV_CONTAINER_IMAG) bash
 
 docker_build:
 	docker build -f docker/Dockerfile . -t $(DOCKER_TAG_FMM)
