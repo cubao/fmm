@@ -30,4 +30,4 @@ RUN wget https://boostorg.jfrog.io/artifactory/main/release/1.82.0/source/boost_
         ./bootstrap.sh && ./b2 install && \
     popd && rm -rf boost_*
 
-RUN python3 -m pip install jupyterlab
+RUN python3 -m pip install jupyterlab pandas geopandas
