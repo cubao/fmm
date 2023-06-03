@@ -1,6 +1,7 @@
 #ifndef FMM_CUBAO_HELPERS_HPP
 #define FMM_CUBAO_HELPERS_HPP
 
+#include "util/cubao_types.hpp"
 #include <mapbox/geojson.hpp>
 #include <mapbox/geojson/rapidjson.hpp>
 #include <mapbox/geojson/value.hpp>
@@ -19,10 +20,6 @@
 
 namespace cubao
 {
-using RapidjsonValue = mapbox::geojson::rapidjson_value;
-using RapidjsonAllocator = mapbox::geojson::rapidjson_allocator;
-using RapidjsonDocument = mapbox::geojson::rapidjson_document;
-
 constexpr const auto RJFLAGS = rapidjson::kParseDefaultFlags |      //
                                rapidjson::kParseCommentsFlag |      //
                                rapidjson::kParseFullPrecisionFlag | //
@@ -63,6 +60,32 @@ inline bool dump_json(const std::string &path, const RapidjsonValue &json,
     }
     fclose(fp);
     return succ;
+}
+
+inline RapidjsonValue loads(const std::string &json)
+{
+    RapidjsonDocument d;
+    rapidjson::StringStream ss(json.data());
+    d.ParseStream<RJFLAGS>(ss);
+    if (d.HasParseError()) {
+        throw std::invalid_argument(
+            "invalid json, offset: " + std::to_string(d.GetErrorOffset()) +
+            ", error: " + rapidjson::GetParseError_En(d.GetParseError()));
+    }
+    return RapidjsonValue{std::move(d.Move())};
+}
+
+inline std::string dumps(const RapidjsonValue &json, bool indent = false)
+{
+    rapidjson::StringBuffer buffer;
+    if (indent) {
+        rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+        json.Accept(writer);
+    } else {
+        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+        json.Accept(writer);
+    }
+    return buffer.GetString();
 }
 
 } // namespace cubao

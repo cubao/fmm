@@ -2,7 +2,6 @@
 #include "util/debug.hpp"
 #include "util/util.hpp"
 #include "util/cubao_helpers.hpp"
-#include "dbg.h"
 #include "algorithm/geom_algorithm.hpp"
 
 #include <ogrsf_frmts.h> // C++ API for GDAL
@@ -71,22 +70,30 @@ void Network::add_edge(EdgeID edge_id, NodeID source, NodeID target,
 
 bool Network::load(const std::string &path)
 {
-    if (!edges.empty()) {
-        SPDLOG_ERROR("load from json to non-empty network");
+    assert(edges.empty());
+    return from_json(cubao::load_json(path));
+}
+bool Network::dump(const std::string &path) const
+{
+    return cubao::dump_json(path, to_json(), true);
+}
+
+bool Network::loads(const std::string &json)
+{
+    return from_json(cubao::loads(json));
+}
+std::string Network::dumps() const { return cubao::dumps(to_json()); }
+bool Network::from_json(const RapidjsonValue &json)
+{
+    if (!json.IsObject()) {
         return false;
     }
     using namespace cubao;
-    auto json = cubao::load_json(path);
-    if (!json.IsObject()) {
-        SPDLOG_ERROR("invalid json: {}", path);
-        return false;
-    }
     srid = json["srid"].GetInt();
     for (auto &e : json["edges"].GetArray()) {
         auto id = e["id"].GetInt64();
         auto source = e["source"].GetInt64();
         auto target = e["target"].GetInt64();
-        // dbg(id, source, target);
         FMM::CORE::LineString geom;
         for (auto &xy : e["coordinates"].GetArray()) {
             geom.add_point(xy[0].GetDouble(), xy[1].GetDouble());
@@ -95,10 +102,9 @@ bool Network::load(const std::string &path)
     }
     return true;
 }
-bool Network::dump(const std::string &path) const
+RapidjsonValue Network::to_json(RapidjsonAllocator &allocator) const
 {
     using namespace cubao;
-    RapidjsonAllocator allocator;
     RapidjsonValue edges(rapidjson::kArrayType);
     for (auto &e : this->edges) {
         RapidjsonValue edge(rapidjson::kObjectType);
@@ -125,7 +131,7 @@ bool Network::dump(const std::string &path) const
     RapidjsonValue json(rapidjson::kObjectType);
     json.AddMember("srid", RapidjsonValue(srid), allocator);
     json.AddMember("edges", edges, allocator);
-    return cubao::dump_json(path, json, true);
+    return json;
 }
 
 void Network::read_ogr_file(const std::string &filename,

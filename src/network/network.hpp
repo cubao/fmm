@@ -13,6 +13,7 @@
 #include "network/type.hpp"
 #include "config/network_config.hpp"
 #include "core/gps.hpp"
+#include "util/cubao_types.hpp"
 #include "mm/mm_type.hpp"
 #include <ogrsf_frmts.h> // C++ API for GDAL
 #include <iostream>
@@ -195,8 +196,18 @@ class Network
     void add_edge(EdgeID edge_id, NodeID source, NodeID target,
                   const FMM::CORE::LineString &geom);
 
+    // json load/dump
     bool load(const std::string &path);
     bool dump(const std::string &path) const;
+    bool loads(const std::string &json);
+    std::string dumps() const;
+    bool from_json(const RapidjsonValue &json);
+    RapidjsonValue to_json(RapidjsonAllocator &allocator) const;
+    RapidjsonValue to_json() const
+    {
+        RapidjsonAllocator allocator;
+        return to_json(allocator);
+    }
 
   private:
     void read_ogr_file(const std::string &filename, const std::string &id_name,
