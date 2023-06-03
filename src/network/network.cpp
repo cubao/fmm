@@ -1,9 +1,8 @@
 #include "network/network.hpp"
 #include "util/debug.hpp"
 #include "util/util.hpp"
+#include "util/cubao_helpers.hpp"
 #include "algorithm/geom_algorithm.hpp"
-
-// #include "rapidjson/"
 
 #include <ogrsf_frmts.h> // C++ API for GDAL
 #include <math.h>        // Calulating probability
@@ -69,10 +68,38 @@ void Network::add_edge(EdgeID edge_id, NodeID source, NodeID target,
     edge_map.insert({edge_id, index});
 };
 
-bool Network::load(const std::string &path) {
-    return false;
-}
-bool Network::dump(const std::string &path) const {
+bool Network::load(const std::string &path) { return false; }
+bool Network::dump(const std::string &path) const
+{
+    using namespace cubao;
+    RapidjsonAllocator allocator;
+    RapidjsonValue edges(rapidjson::kArrayType);
+    for (auto &e : this->edges) {
+        RapidjsonValue edge(rapidjson::kObjectType);
+        edge.AddMember("id", RapidjsonValue((int64_t)e.id), allocator);
+        edge.AddMember("source",
+                       RapidjsonValue((uint32_t)get_node_id(e.source)),
+                       allocator);
+        edge.AddMember("target",
+                       RapidjsonValue((uint32_t)get_node_id(e.target)),
+                       allocator);
+        RapidjsonValue coordinates(rapidjson::kArrayType);
+        auto &G = e.geom;
+        int N = G.get_num_points();
+        for (int i = 0; i < N; ++i) {
+            RapidjsonValue xy(rapidjson::kArrayType);
+            xy.Reserve(2, allocator);
+            xy.PushBack(RapidjsonValue(G.get_x(i)), allocator);
+            xy.PushBack(RapidjsonValue(G.get_y(i)), allocator);
+            coordinates.PushBack(xy, allocator);
+        }
+        edge.AddMember("coordinates", coordinates, allocator);
+        edges.PushBack(edge, allocator);
+    }
+    RapidjsonValue json(rapidjson::kObjectType);
+    json.AddMember("srid", RapidjsonValue(srid), allocator);
+    json.AddMember("edges", edges, allocator);
+    return cubao::dump_json(path, json, true);
 }
 
 void Network::read_ogr_file(const std::string &filename,

@@ -105,6 +105,7 @@ configure_file(${UNCONFIGURED_API_HEADER} ${CONFIGURED_API_HEADER})
 
 set(FMM_INCLUDE_PATH
     ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/third_party
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/cubao/include
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/h3/include)
 
 include_directories(${FMM_INCLUDE_PATH})
@@ -180,7 +181,7 @@ if(FMM_INSTALL_HEADER)
       ${CMAKE_CURRENT_SOURCE_DIR}/third_party/fiboheap
       ${CMAKE_CURRENT_SOURCE_DIR}/third_party/h3
       ${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog)
-      set(FMM_API_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/fmm-api.hpp)
+  set(FMM_API_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/fmm-api.hpp)
   install(
     DIRECTORY ${FMM_DIST_INCLUDE_PATH}
     DESTINATION "include/fmm"
