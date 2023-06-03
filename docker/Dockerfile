@@ -31,3 +31,4 @@ RUN wget https://boostorg.jfrog.io/artifactory/main/release/1.82.0/source/boost_
     popd && rm -rf boost_*
 
 RUN yum install -y cmake-gui
+RUN python3 -m pip install jupyterlab
