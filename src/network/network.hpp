@@ -63,6 +63,7 @@ class Network
      *  @param mode: mode name, only applies to OSM network
      *
      */
+    Network(){};
     Network(const std::string &filename, const std::string &id_name = "id",
             const std::string &source_name = "source",
             const std::string &target_name = "target");

@@ -14,7 +14,11 @@
 #include <iostream>
 #include <set>
 
-namespace cubao {
+#define DBG_MACRO_NO_WARNING
+#include "dbg.h"
+
+namespace cubao
+{
 using RapidjsonValue = mapbox::geojson::rapidjson_value;
 using RapidjsonAllocator = mapbox::geojson::rapidjson_allocator;
 using RapidjsonDocument = mapbox::geojson::rapidjson_document;
@@ -61,5 +65,5 @@ inline bool dump_json(const std::string &path, const RapidjsonValue &json,
     return succ;
 }
 
-}
+} // namespace cubao
 #endif
