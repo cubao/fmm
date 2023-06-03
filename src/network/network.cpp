@@ -3,6 +3,8 @@
 #include "util/util.hpp"
 #include "algorithm/geom_algorithm.hpp"
 
+// #include "rapidjson/"
+
 #include <ogrsf_frmts.h> // C++ API for GDAL
 #include <math.h>        // Calulating probability
 #include <algorithm>     // Partial sort copy
@@ -66,6 +68,12 @@ void Network::add_edge(EdgeID edge_id, NodeID source, NodeID target,
     edges.push_back({index, edge_id, s_idx, t_idx, geom.get_length(), geom});
     edge_map.insert({edge_id, index});
 };
+
+bool Network::load(const std::string &path) {
+    return false;
+}
+bool Network::dump(const std::string &path) const {
+}
 
 void Network::read_ogr_file(const std::string &filename,
                             const std::string &id_name,

@@ -194,6 +194,9 @@ class Network
     void add_edge(EdgeID edge_id, NodeID source, NodeID target,
                   const FMM::CORE::LineString &geom);
 
+    bool load(const std::string &path);
+    bool dump(const std::string &path) const;
+
   private:
     void read_ogr_file(const std::string &filename, const std::string &id_name,
                        const std::string &source_name,
