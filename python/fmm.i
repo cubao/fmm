@@ -15,6 +15,11 @@
 %ignore FMM::CONFIG::GPSConfig::print() const;
 %ignore FMM::CONFIG::ResultConfig::print() const;
 
+// from/to_json
+%ignore FMM::NETWORK::Network::from_json(const RapidjsonValue &json);
+%ignore FMM::NETWORK::Network::to_json(RapidjsonAllocator &allocator) const;
+%ignore FMM::NETWORK::Network::to_json() const;
+
 %exception {
     try {
         $action

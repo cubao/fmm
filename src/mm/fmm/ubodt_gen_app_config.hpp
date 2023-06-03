@@ -27,6 +27,7 @@ class UBODTGenAppConfig
      * @param argc number of argument
      * @param argv argument data
      */
+    UBODTGenAppConfig() {}
     UBODTGenAppConfig(int argc, char **argv);
     /**
      * Load configuration from xml file
@@ -57,6 +58,7 @@ class UBODTGenAppConfig
      * Print help information
      */
     static void print_help();
+
     CONFIG::NetworkConfig network_config; /**< Network configuration */
     double delta;            /**< Upper-bound of the routing result */
     std::string result_file; /**< Result file */

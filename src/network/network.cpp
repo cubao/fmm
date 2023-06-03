@@ -1,6 +1,7 @@
 #include "network/network.hpp"
 #include "util/debug.hpp"
 #include "util/util.hpp"
+#include "util/cubao_helpers.hpp"
 #include "algorithm/geom_algorithm.hpp"
 
 #include <ogrsf_frmts.h> // C++ API for GDAL
@@ -66,6 +67,72 @@ void Network::add_edge(EdgeID edge_id, NodeID source, NodeID target,
     edges.push_back({index, edge_id, s_idx, t_idx, geom.get_length(), geom});
     edge_map.insert({edge_id, index});
 };
+
+bool Network::load(const std::string &path)
+{
+    assert(edges.empty());
+    return from_json(cubao::load_json(path));
+}
+bool Network::dump(const std::string &path) const
+{
+    return cubao::dump_json(path, to_json(), true);
+}
+
+bool Network::loads(const std::string &json)
+{
+    return from_json(cubao::loads(json));
+}
+std::string Network::dumps() const { return cubao::dumps(to_json()); }
+bool Network::from_json(const RapidjsonValue &json)
+{
+    if (!json.IsObject()) {
+        return false;
+    }
+    using namespace cubao;
+    srid = json["srid"].GetInt();
+    for (auto &e : json["edges"].GetArray()) {
+        auto id = e["id"].GetInt64();
+        auto source = e["source"].GetInt64();
+        auto target = e["target"].GetInt64();
+        FMM::CORE::LineString geom;
+        for (auto &xy : e["coordinates"].GetArray()) {
+            geom.add_point(xy[0].GetDouble(), xy[1].GetDouble());
+        }
+        add_edge((EdgeID)id, (NodeID)source, (NodeID)target, geom);
+    }
+    return true;
+}
+RapidjsonValue Network::to_json(RapidjsonAllocator &allocator) const
+{
+    using namespace cubao;
+    RapidjsonValue edges(rapidjson::kArrayType);
+    for (auto &e : this->edges) {
+        RapidjsonValue edge(rapidjson::kObjectType);
+        edge.AddMember("id", RapidjsonValue((int64_t)e.id), allocator);
+        edge.AddMember("source",
+                       RapidjsonValue((uint32_t)get_node_id(e.source)),
+                       allocator);
+        edge.AddMember("target",
+                       RapidjsonValue((uint32_t)get_node_id(e.target)),
+                       allocator);
+        RapidjsonValue coordinates(rapidjson::kArrayType);
+        auto &G = e.geom;
+        int N = G.get_num_points();
+        for (int i = 0; i < N; ++i) {
+            RapidjsonValue xy(rapidjson::kArrayType);
+            xy.Reserve(2, allocator);
+            xy.PushBack(RapidjsonValue(G.get_x(i)), allocator);
+            xy.PushBack(RapidjsonValue(G.get_y(i)), allocator);
+            coordinates.PushBack(xy, allocator);
+        }
+        edge.AddMember("coordinates", coordinates, allocator);
+        edges.PushBack(edge, allocator);
+    }
+    RapidjsonValue json(rapidjson::kObjectType);
+    json.AddMember("srid", RapidjsonValue(srid), allocator);
+    json.AddMember("edges", edges, allocator);
+    return json;
+}
 
 void Network::read_ogr_file(const std::string &filename,
                             const std::string &id_name,

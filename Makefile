@@ -1,7 +1,8 @@
 PROJECT_SOURCE_DIR ?= $(abspath ./)
+PROJECT_NAME ?= $(shell basename $(PROJECT_SOURCE_DIR))
 BUILD_DIR ?= $(PROJECT_SOURCE_DIR)/build
 INSTALL_DIR ?= $(BUILD_DIR)/install
-NUM_JOB ?= 2
+NUM_JOB ?= 8
 
 all:
 	@echo nothing special
@@ -17,14 +18,18 @@ clean:
 force_clean:
 	docker run --rm -v `pwd`:`pwd` -w `pwd` -it alpine/make make clean
 
+# -DCMAKE_INSTALL_PREFIX=$(INSTALL_DIR)
 CMAKE_ARGS ?= \
-	-DCMAKE_INSTALL_PREFIX=$(INSTALL_DIR) \
 	-DBUILD_SHARED_LIBS=OFF
 build:
 	mkdir -p $(BUILD_DIR) && cd $(BUILD_DIR) && \
 	cmake $(PROJECT_SOURCE_DIR) $(CMAKE_ARGS) && \
 	make -j$(NUM_JOB) && make install
 .PHONY: build
+
+clitest1:
+	build/bin/fmm
+	python3 example/python/fmm_test.py
 
 DOCKER_TAG_WINDOWS ?= ghcr.io/cubao/build-env-windows-x64:v0.0.1
 DOCKER_TAG_LINUX ?= ghcr.io/cubao/build-env-manylinux2014-x64:v0.0.1
@@ -39,6 +44,18 @@ test_in_linux:
 	docker run --rm -w `pwd` -v `pwd`:`pwd` -v `pwd`/build/linux:`pwd`/build -it $(DOCKER_TAG_LINUX) bash
 test_in_fmm:
 	docker run --rm -w `pwd` -v `pwd`:`pwd` -v `pwd`/build/debug:`pwd`/build -it $(DOCKER_TAG_FMM) bash
+
+DEV_CONTAINER_NAME ?= $(USER)_$(subst /,_,$(PROJECT_NAME)____$(PROJECT_SOURCE_DIR))
+DEV_CONTAINER_IMAG ?= $(DOCKER_TAG_FMM)
+test_in_dev_container:
+	docker ps | grep $(DEV_CONTAINER_NAME) \
+		&& docker exec -it $(DEV_CONTAINER_NAME) bash \
+		|| docker run --rm --name $(DEV_CONTAINER_NAME) \
+		--network host --security-opt seccomp=unconfined \
+		-v `pwd`:`pwd` -w `pwd` -it $(DEV_CONTAINER_IMAG) bash
+
+run_lab:
+	jupyter lab --ip=0.0.0.0 --port 8888 --NotebookApp.token='' --NotebookApp.password='' --allow-root
 
 docker_build:
 	docker build -f docker/Dockerfile . -t $(DOCKER_TAG_FMM)
