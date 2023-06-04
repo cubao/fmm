@@ -17,6 +17,7 @@
 #include "python/pyfmm.hpp"
 #include "config/gps_config.hpp"
 #include "config/result_config.hpp"
+#include "util/cubao_types.hpp"
 
 #include <string>
 #include <boost/property_tree/ptree.hpp>
@@ -78,6 +79,19 @@ struct FastMapMatchConfig
      * Register help information to a string stream
      */
     static void register_help(std::ostringstream &oss);
+
+    // json load/dump
+    bool load(const std::string &path);
+    bool dump(const std::string &path) const;
+    bool loads(const std::string &json);
+    std::string dumps() const;
+    bool from_json(const RapidjsonValue &json);
+    RapidjsonValue to_json(RapidjsonAllocator &allocator) const;
+    RapidjsonValue to_json() const
+    {
+        RapidjsonAllocator allocator;
+        return to_json(allocator);
+    }
 };
 
 /**
