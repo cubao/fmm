@@ -13,6 +13,7 @@
 #include "network/type.hpp"
 #include "mm/transition_graph.hpp"
 #include "util/debug.hpp"
+#include "util/cubao_types.hpp"
 
 namespace FMM
 {
@@ -132,6 +133,10 @@ class UBODT
      */
     static std::shared_ptr<UBODT> read_ubodt_binary(const std::string &filename,
                                                     int multiplier = 50000);
+
+    static std::shared_ptr<UBODT> read_ubodt_json(const std::string &filename,
+                                                  int multiplier = 50000);
+
     /**
      * Estimate the number of rows in a file
      * @param  filename input file name

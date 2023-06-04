@@ -1,6 +1,7 @@
 #include "mm/fmm/ubodt_gen_app_config.hpp"
 #include "util/util.hpp"
 #include "util/debug.hpp"
+#include "util/cubao_helpers.hpp"
 
 using namespace FMM;
 using namespace FMM::CORE;
@@ -94,6 +95,43 @@ void UBODTGenAppConfig::print_help()
     oss << "-h/--help: help information\n";
     oss << "For xml configuration, check example folder\n";
     std::cout << oss.str();
+}
+
+bool UBODTGenAppConfig::load(const std::string &path)
+{
+    return from_json(cubao::load_json(path));
+}
+bool UBODTGenAppConfig::dump(const std::string &path) const
+{
+    return cubao::dump_json(path, to_json(), true);
+}
+
+bool UBODTGenAppConfig::loads(const std::string &json)
+{
+    return from_json(cubao::loads(json));
+}
+std::string UBODTGenAppConfig::dumps() const { return cubao::dumps(to_json()); }
+bool UBODTGenAppConfig::from_json(const RapidjsonValue &json)
+{
+    if (!json.IsObject()) {
+        return false;
+    }
+    using namespace cubao;
+    return true;
+}
+RapidjsonValue UBODTGenAppConfig::to_json(RapidjsonAllocator &allocator) const
+{
+    using namespace cubao;
+    RapidjsonValue json(rapidjson::kObjectType);
+    json.AddMember("delta", RapidjsonValue(delta), allocator);
+    json.AddMember(
+        "result_file",
+        RapidjsonValue(result_file.data(), result_file.length(), allocator),
+        allocator);
+    json.AddMember("log_level", RapidjsonValue(log_level), allocator);
+    json.AddMember("use_omp", RapidjsonValue(use_omp), allocator);
+    json.AddMember("help_specified", RapidjsonValue(help_specified), allocator);
+    return json;
 }
 
 bool UBODTGenAppConfig::validate() const
