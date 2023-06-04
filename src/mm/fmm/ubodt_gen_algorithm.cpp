@@ -70,6 +70,9 @@ void UBODTGenAlgorithm::precompute_ubodt_single_thead(
         }
     } else {
         myfile << "source;target;next_n;prev_n;next_e;distance\n";
+        // TODO, very bad idea to export
+        //  Node/Edge_index instead of
+        //  Node/Edge_id
         for (NodeIndex source = 0; source < num_vertices; ++source) {
             if (source % step_size == 0)
                 SPDLOG_INFO("Progress {} / {}", source, num_vertices);
