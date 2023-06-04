@@ -104,6 +104,7 @@ bool STMATCHConfig::from_json(const RapidjsonValue &json)
     using namespace cubao;
     k = json["k"].GetInt();
     radius = json["r"].GetDouble();
+    // use e, f like in example/web_demo/web_demo.py??
     gps_error = json["gps_error"].GetDouble();
     vmax = json["vmax"].GetDouble();
     factor = json["factor"].GetDouble();
