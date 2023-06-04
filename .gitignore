@@ -102,5 +102,6 @@ example/command_line_example/ubodt.txt
 example/notebook/a.csv
 example/data/ubodt.json
 example/data/ubodt.txt
+example/data/mr.txt
 
 /*.json

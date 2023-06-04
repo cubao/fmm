@@ -83,6 +83,15 @@ bool Network::loads(const std::string &json)
     return from_json(cubao::loads(json));
 }
 std::string Network::dumps() const { return cubao::dumps(to_json()); }
+
+inline int64_t GetInt64(const RapidjsonValue &json) {
+    if (json.IsUint64()) {
+        static_cast<int64_t>(json.GetUint64());
+    } else {
+        return json.GetInt64();
+    }
+}
+
 bool Network::from_json(const RapidjsonValue &json)
 {
     if (!json.IsObject()) {
@@ -92,14 +101,18 @@ bool Network::from_json(const RapidjsonValue &json)
     srid = json["srid"].GetInt();
     for (auto &e : json["edges"].GetArray()) {
         auto id = e["id"].GetInt64();
-        auto source = e["source"].GetInt64();
-        auto target = e["target"].GetInt64();
+        auto source = GetInt64(e["source"]);
+        auto target = GetInt64(e["target"]);
         FMM::CORE::LineString geom;
         for (auto &xy : e["coordinates"].GetArray()) {
             geom.add_point(xy[0].GetDouble(), xy[1].GetDouble());
         }
         add_edge((EdgeID)id, (NodeID)source, (NodeID)target, geom);
     }
+    num_vertices = node_id_vec.size();
+    SPDLOG_INFO("Number of edges {} nodes {}", edges.size(), num_vertices);
+    build_rtree_index();
+    SPDLOG_INFO("Read network done.");
     return true;
 }
 RapidjsonValue Network::to_json(RapidjsonAllocator &allocator) const
