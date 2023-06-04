@@ -105,3 +105,10 @@ example/data/ubodt.txt
 example/data/mr.txt
 
 /*.json
+
+cache
+network
+network-new.tar.gz
+osm_mapmatching.py
+stockholm
+stockholm.tar.gz
