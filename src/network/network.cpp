@@ -84,7 +84,8 @@ bool Network::loads(const std::string &json)
 }
 std::string Network::dumps() const { return cubao::dumps(to_json()); }
 
-inline int64_t GetInt64(const RapidjsonValue &json) {
+inline int64_t GetInt64(const RapidjsonValue &json)
+{
     if (json.IsUint64()) {
         static_cast<int64_t>(json.GetUint64());
     } else {

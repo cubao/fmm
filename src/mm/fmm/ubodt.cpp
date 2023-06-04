@@ -4,6 +4,7 @@
 
 #include "mm/fmm/ubodt.hpp"
 #include "util/util.hpp"
+#include "util/cubao_helpers.hpp"
 
 #include <fstream>
 #include <stdexcept>
@@ -207,6 +208,8 @@ std::shared_ptr<UBODT> UBODT::read_ubodt_file(const std::string &filename,
         ubodt = read_ubodt_binary(filename, multiplier);
     } else if (UTIL::check_file_extension(filename, "csv,txt")) {
         ubodt = read_ubodt_csv(filename, multiplier);
+    } else if (UTIL::check_file_extension(filename, "json")) {
+        ubodt = read_ubodt_json(filename, multiplier);
     } else {
         std::string message =
             (boost::format("File format not supported: %1%") % filename).str();
@@ -288,6 +291,42 @@ std::shared_ptr<UBODT> UBODT::read_ubodt_binary(const std::string &filename,
         }
     }
     ifs.close();
+    double lf = NUM_ROWS / (double)buckets;
+    SPDLOG_TRACE("Estimated load factor #elements/#tablebuckets {}", lf);
+    if (lf > 10) {
+        SPDLOG_WARN("Load factor is too large.");
+    }
+    SPDLOG_INFO("Finish reading UBODT with rows {}", NUM_ROWS);
+    return table;
+}
+
+std::shared_ptr<UBODT> UBODT::read_ubodt_json(const std::string &filename,
+                                              int multiplier)
+{
+    SPDLOG_INFO("Reading UBODT file (json format) from {}", filename);
+    long rows = -1;
+    SPDLOG_TRACE("Estimated rows is {}", rows);
+    int buckets = find_prime_number(rows / LOAD_FACTOR);
+    int progress_step = 1000000;
+    std::shared_ptr<UBODT> table = std::make_shared<UBODT>(buckets, multiplier);
+
+    auto json = cubao::load_json(filename);
+    long NUM_ROWS = 0;
+    for (auto &rec : json.GetArray()) {
+        Record *r = (Record *)malloc(sizeof(Record));
+        r->next = nullptr;
+        r->source = rec["source"].GetInt64();
+        r->target = rec["target"].GetInt64();
+        r->first_n = rec["first_n"].GetInt64();
+        r->prev_n = rec["prev_n"].GetInt64();
+        r->next_e = rec["next_e"].GetInt64();
+        r->cost = rec["cost"].GetDouble();
+        table->insert(r);
+        ++NUM_ROWS;
+        if (NUM_ROWS % progress_step == 0) {
+            SPDLOG_INFO("Read rows {}", NUM_ROWS);
+        }
+    }
     double lf = NUM_ROWS / (double)buckets;
     SPDLOG_TRACE("Estimated load factor #elements/#tablebuckets {}", lf);
     if (lf > 10) {
