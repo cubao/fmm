@@ -194,7 +194,6 @@ void Network::read_ogr_file(const std::string &filename,
         SPDLOG_WARN("SRID is not found, set to 4326 by default");
     }
     // Read data from shapefile
-    EdgeIndex index = 0;
     while ((ogrFeature = ogrlayer->GetNextFeature()) != NULL) {
         EdgeID id = ogrFeature->GetFieldAsInteger64(id_idx);
         NodeID source = ogrFeature->GetFieldAsInteger64(source_idx);
@@ -212,27 +211,7 @@ void Network::read_ogr_file(const std::string &filename,
             SPDLOG_CRITICAL("Unknown geometry type for feature id {} s {} t {}",
                             id, source, target);
         }
-        NodeIndex s_idx, t_idx;
-        if (node_map.find(source) == node_map.end()) {
-            s_idx = node_id_vec.size();
-            node_id_vec.push_back(source);
-            node_map.insert({source, s_idx});
-            vertex_points.push_back(geom.get_point(0));
-        } else {
-            s_idx = node_map[source];
-        }
-        if (node_map.find(target) == node_map.end()) {
-            t_idx = node_id_vec.size();
-            node_id_vec.push_back(target);
-            node_map.insert({target, t_idx});
-            int npoints = geom.get_num_points();
-            vertex_points.push_back(geom.get_point(npoints - 1));
-        } else {
-            t_idx = node_map[target];
-        }
-        edges.push_back({index, id, s_idx, t_idx, geom.get_length(), geom});
-        edge_map.insert({id, index});
-        ++index;
+        add_edge(id, source, target, geom);
         OGRFeature::DestroyFeature(ogrFeature);
     }
     GDALClose(poDS);
