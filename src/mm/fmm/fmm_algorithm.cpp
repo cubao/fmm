@@ -86,7 +86,10 @@ bool FastMapMatchConfig::loads(const std::string &json)
 {
     return from_json(cubao::loads(json));
 }
-std::string FastMapMatchConfig::dumps() const { return cubao::dumps(to_json()); }
+std::string FastMapMatchConfig::dumps() const
+{
+    return cubao::dumps(to_json());
+}
 bool FastMapMatchConfig::from_json(const RapidjsonValue &json)
 {
     if (!json.IsObject()) {
@@ -106,7 +109,8 @@ RapidjsonValue FastMapMatchConfig::to_json(RapidjsonAllocator &allocator) const
     json.AddMember("k", RapidjsonValue(k), allocator);
     json.AddMember("r", RapidjsonValue(radius), allocator);
     json.AddMember("gps_error", RapidjsonValue(gps_error), allocator);
-    json.AddMember("reverse_tolerance", RapidjsonValue(reverse_tolerance), allocator);
+    json.AddMember("reverse_tolerance", RapidjsonValue(reverse_tolerance),
+                   allocator);
     return json;
 }
 

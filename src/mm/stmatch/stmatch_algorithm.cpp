@@ -2,6 +2,7 @@
 #include "algorithm/geom_algorithm.hpp"
 #include "util/debug.hpp"
 #include "util/util.hpp"
+#include "util/cubao_helpers.hpp"
 #include "io/gps_reader.hpp"
 #include "io/mm_writer.hpp"
 
@@ -80,6 +81,48 @@ void STMATCHConfig::register_help(std::ostringstream &oss)
     oss << "--reverse_tolerance (optional) <double>: proportion "
            "of reverse movement allowed on an edge\n";
 };
+
+bool STMATCHConfig::load(const std::string &path)
+{
+    return from_json(cubao::load_json(path));
+}
+bool STMATCHConfig::dump(const std::string &path) const
+{
+    return cubao::dump_json(path, to_json(), true);
+}
+
+bool STMATCHConfig::loads(const std::string &json)
+{
+    return from_json(cubao::loads(json));
+}
+std::string STMATCHConfig::dumps() const { return cubao::dumps(to_json()); }
+bool STMATCHConfig::from_json(const RapidjsonValue &json)
+{
+    if (!json.IsObject()) {
+        return false;
+    }
+    using namespace cubao;
+    k = json["k"].GetInt();
+    radius = json["r"].GetDouble();
+    gps_error = json["gps_error"].GetDouble();
+    vmax = json["vmax"].GetDouble();
+    factor = json["factor"].GetDouble();
+    reverse_tolerance = json["reverse_tolerance"].GetDouble();
+    return true;
+}
+RapidjsonValue STMATCHConfig::to_json(RapidjsonAllocator &allocator) const
+{
+    using namespace cubao;
+    RapidjsonValue json(rapidjson::kObjectType);
+    json.AddMember("k", RapidjsonValue(k), allocator);
+    json.AddMember("r", RapidjsonValue(radius), allocator);
+    json.AddMember("gps_error", RapidjsonValue(gps_error), allocator);
+    json.AddMember("vmax", RapidjsonValue(vmax), allocator);
+    json.AddMember("factor", RapidjsonValue(factor), allocator);
+    json.AddMember("reverse_tolerance", RapidjsonValue(reverse_tolerance),
+                   allocator);
+    return json;
+}
 
 bool STMATCHConfig::validate() const
 {

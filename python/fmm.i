@@ -28,6 +28,10 @@
 %ignore FMM::MM::FastMapMatchConfig::from_json(const RapidjsonValue &json);
 %ignore FMM::MM::FastMapMatchConfig::to_json(RapidjsonAllocator &allocator) const;
 %ignore FMM::MM::FastMapMatchConfig::to_json() const;
+// from/to_json
+%ignore FMM::MM::STMATCHConfig::from_json(const RapidjsonValue &json);
+%ignore FMM::MM::STMATCHConfig::to_json(RapidjsonAllocator &allocator) const;
+%ignore FMM::MM::STMATCHConfig::to_json() const;
 
 %exception {
     try {
