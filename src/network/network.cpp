@@ -114,11 +114,9 @@ RapidjsonValue Network::to_json(RapidjsonAllocator &allocator) const
     for (auto &e : this->edges) {
         RapidjsonValue edge(rapidjson::kObjectType);
         edge.AddMember("id", RapidjsonValue((int64_t)e.id), allocator);
-        edge.AddMember("source",
-                       RapidjsonValue((uint32_t)get_node_id(e.source)),
+        edge.AddMember("source", RapidjsonValue((int64_t)get_node_id(e.source)),
                        allocator);
-        edge.AddMember("target",
-                       RapidjsonValue((uint32_t)get_node_id(e.target)),
+        edge.AddMember("target", RapidjsonValue((int64_t)get_node_id(e.target)),
                        allocator);
         RapidjsonValue coordinates(rapidjson::kArrayType);
         auto &G = e.geom;
@@ -137,6 +135,72 @@ RapidjsonValue Network::to_json(RapidjsonAllocator &allocator) const
     json.AddMember("srid", RapidjsonValue(srid), allocator);
     json.AddMember("edges", edges, allocator);
     return json;
+}
+
+std::string Network::export_geojson() const
+{
+    return cubao::dumps(__export_geojson());
+}
+
+bool Network::export_geojson(const std::string &path) const
+{
+    return cubao::dump_json(path, __export_geojson(), true);
+}
+
+RapidjsonValue Network::__export_geojson() const
+{
+    RapidjsonAllocator allocator;
+    RapidjsonValue features(rapidjson::kArrayType);
+    features.Reserve(edges.size() + vertex_points.size(), allocator);
+    for (int i = 0, N = vertex_points.size(); i < N; ++i) {
+        RapidjsonValue geometry(rapidjson::kObjectType);
+        geometry.AddMember("type", "Point", allocator);
+        RapidjsonValue coords(rapidjson::kArrayType);
+        coords.PushBack(RapidjsonValue(vertex_points[i].get<0>()), allocator);
+        coords.PushBack(RapidjsonValue(vertex_points[i].get<1>()), allocator);
+        geometry.AddMember("coordinates", coords, allocator);
+        RapidjsonValue properties(rapidjson::kObjectType);
+        properties.AddMember("type", "node", allocator);
+        properties.AddMember("_id", RapidjsonValue((int64_t)node_id_vec[i]),
+                             allocator);
+        RapidjsonValue feature(rapidjson::kObjectType);
+        feature.AddMember("type", "Feature", allocator);
+        feature.AddMember("geometry", geometry, allocator);
+        feature.AddMember("properties", properties, allocator);
+        features.PushBack(feature, allocator);
+    }
+    for (auto &e : edges) {
+        RapidjsonValue geometry(rapidjson::kObjectType);
+        geometry.AddMember("type", "LineString", allocator);
+        auto &G = e.geom;
+        int N = G.get_num_points();
+        RapidjsonValue coords(rapidjson::kArrayType);
+        for (int i = 0; i < N; ++i) {
+            RapidjsonValue xy(rapidjson::kArrayType);
+            xy.Reserve(2, allocator);
+            xy.PushBack(RapidjsonValue(G.get_x(i)), allocator);
+            xy.PushBack(RapidjsonValue(G.get_y(i)), allocator);
+            coords.PushBack(xy, allocator);
+        }
+        geometry.AddMember("coordinates", coords, allocator);
+        RapidjsonValue properties(rapidjson::kObjectType);
+        properties.AddMember("type", "edge", allocator);
+        properties.AddMember("_id", RapidjsonValue((int64_t)e.id), allocator);
+        properties.AddMember("source", RapidjsonValue((int64_t)e.source),
+                             allocator);
+        properties.AddMember("target", RapidjsonValue((int64_t)e.target),
+                             allocator);
+        properties.AddMember("length", RapidjsonValue(e.length), allocator);
+        RapidjsonValue feature(rapidjson::kObjectType);
+        feature.AddMember("type", "Feature", allocator);
+        feature.AddMember("geometry", geometry, allocator);
+        feature.AddMember("properties", properties, allocator);
+        features.PushBack(feature, allocator);
+    }
+    RapidjsonValue fc(rapidjson::kObjectType);
+    fc.AddMember("type", "FeatureCollection", allocator);
+    fc.AddMember("features", features, allocator);
+    return fc;
 }
 
 void Network::read_ogr_file(const std::string &filename,
