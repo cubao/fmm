@@ -13,6 +13,7 @@
 #include "mm/fmm/ubodt_gen_app_config.hpp"
 #include "network/network.hpp"
 #include "network/network_graph.hpp"
+#include "util/cubao_types.hpp"
 
 #ifdef BOOST_OS_WINDOWS
 #include <boost/throw_exception.hpp>
@@ -48,6 +49,15 @@ class UBODTGenAlgorithm
     void precompute_ubodt_omp(const std::string &filename, double delta,
                               bool binary = true) const;
 
+    bool dump(const std::string &filename, double delta) const;
+    std::string dumps(const std::string &filename, double delta) const;
+    RapidjsonValue to_json(RapidjsonAllocator &allocator, double delta) const;
+    RapidjsonValue to_json(double delta) const
+    {
+        RapidjsonAllocator allocator;
+        return to_json(allocator, delta);
+    }
+
   private:
     /**
      * Write the routing result to a binary stream
@@ -70,6 +80,11 @@ class UBODTGenAlgorithm
     void write_result_csv(std::ostream &stream, NETWORK::NodeIndex s,
                           NETWORK::PredecessorMap &pmap,
                           NETWORK::DistanceMap &dmap) const;
+
+    void write_result_json(RapidjsonValue &json, RapidjsonAllocator &allocator,
+                           NETWORK::NodeIndex s, NETWORK::PredecessorMap &pmap,
+                           NETWORK::DistanceMap &dmap) const;
+
     const NETWORK::Network &network_;
     const NETWORK::NetworkGraph &ng_;
 }; // UBODTGenAlgorithm

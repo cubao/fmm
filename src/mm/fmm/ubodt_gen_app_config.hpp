@@ -11,6 +11,7 @@
 #define MM_FMM_UBODT_CONFIG
 
 #include "config/network_config.hpp"
+#include "util/cubao_types.hpp"
 
 namespace FMM
 {
@@ -58,6 +59,19 @@ class UBODTGenAppConfig
      * Print help information
      */
     static void print_help();
+
+    // json load/dump
+    bool load(const std::string &path);
+    bool dump(const std::string &path) const;
+    bool loads(const std::string &json);
+    std::string dumps() const;
+    bool from_json(const RapidjsonValue &json);
+    RapidjsonValue to_json(RapidjsonAllocator &allocator) const;
+    RapidjsonValue to_json() const
+    {
+        RapidjsonAllocator allocator;
+        return to_json(allocator);
+    }
 
     CONFIG::NetworkConfig network_config; /**< Network configuration */
     double delta;            /**< Upper-bound of the routing result */

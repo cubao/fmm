@@ -19,6 +19,11 @@
 %ignore FMM::NETWORK::Network::from_json(const RapidjsonValue &json);
 %ignore FMM::NETWORK::Network::to_json(RapidjsonAllocator &allocator) const;
 %ignore FMM::NETWORK::Network::to_json() const;
+// from/to_json
+%ignore FMM::MM::UBODTGenAlgorithm::dump(const std::string &filename, double delta) const;
+%ignore FMM::MM::UBODTGenAlgorithm::dumps(double delta) const;
+%ignore FMM::MM::UBODTGenAlgorithm::to_json(RapidjsonAllocator &allocator, double delta) const;
+%ignore FMM::MM::UBODTGenAlgorithm::to_json(double delta) const;
 
 %exception {
     try {

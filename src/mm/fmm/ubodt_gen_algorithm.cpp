@@ -5,6 +5,7 @@
 #include "mm/fmm/ubodt_gen_algorithm.hpp"
 #include "mm/fmm/ubodt.hpp"
 #include "util/debug.hpp"
+#include "util/cubao_helpers.hpp"
 #include <omp.h>
 
 using namespace FMM;
@@ -122,6 +123,37 @@ void UBODTGenAlgorithm::precompute_ubodt_omp(const std::string &filename,
     myfile.close();
 }
 
+bool UBODTGenAlgorithm::dump(const std::string &filename, double delta) const
+{
+    return cubao::dump_json(filename, to_json(delta), true);
+}
+
+std::string UBODTGenAlgorithm::dumps(const std::string &filename,
+                                     double delta) const
+{
+    return cubao::dumps(to_json(delta));
+}
+RapidjsonValue UBODTGenAlgorithm::to_json(RapidjsonAllocator &allocator,
+                                          double delta) const
+{
+    RapidjsonValue json(rapidjson::kObjectType);
+    int num_vertices = ng_.get_num_vertices();
+    int step_size = num_vertices / 10;
+    if (step_size < 10)
+        step_size = 10;
+    SPDLOG_INFO("Start to generate UBODT with delta {}", delta);
+    SPDLOG_INFO("Output format json");
+    for (NodeIndex source = 0; source < num_vertices; ++source) {
+        if (source % step_size == 0)
+            SPDLOG_INFO("Progress {} / {}", source, num_vertices);
+        PredecessorMap pmap;
+        DistanceMap dmap;
+        ng_.single_source_upperbound_dijkstra(source, delta, &pmap, &dmap);
+        write_result_json(json, allocator, source, pmap, dmap);
+    }
+    return json;
+}
+
 /**
  * Write the result of routing from a single source node
  * @param stream output stream
@@ -155,6 +187,42 @@ void UBODTGenAlgorithm::write_result_csv(std::ostream &stream, NodeIndex s,
     for (Record &r : source_map) {
         stream << r.source << ";" << r.target << ";" << r.first_n << ";"
                << r.prev_n << ";" << r.next_e << ";" << r.cost << "\n";
+    }
+}
+
+void UBODTGenAlgorithm::write_result_json(RapidjsonValue &json,
+                                          RapidjsonAllocator &allocator,
+                                          NodeIndex s, PredecessorMap &pmap,
+                                          DistanceMap &dmap) const
+{
+    std::vector<Record> source_map;
+    for (auto iter = pmap.begin(); iter != pmap.end(); ++iter) {
+        NodeIndex cur_node = iter->first;
+        if (cur_node != s) {
+            NodeIndex prev_node = iter->second;
+            NodeIndex v = cur_node;
+            NodeIndex u;
+            while ((u = pmap[v]) != s) {
+                v = u;
+            }
+            NodeIndex successor = v;
+            double cost = dmap[successor];
+            EdgeIndex edge_index = ng_.get_edge_index(s, successor, cost);
+            source_map.push_back({s, cur_node, successor, prev_node, edge_index,
+                                  dmap[cur_node], nullptr});
+        }
+    }
+    auto arr = json.GetArray();
+#pragma omp critical
+    for (Record &r : source_map) {
+        RapidjsonValue record(rapidjson::kObjectType);
+        record.AddMember("source", RapidjsonValue(r.source), allocator);
+        record.AddMember("target", RapidjsonValue(r.target), allocator);
+        record.AddMember("first_n", RapidjsonValue(r.first_n), allocator);
+        record.AddMember("prev_n", RapidjsonValue(r.prev_n), allocator);
+        record.AddMember("next_e", RapidjsonValue(r.next_e), allocator);
+        record.AddMember("cost", RapidjsonValue(r.cost), allocator);
+        arr.PushBack(record, allocator);
     }
 }
 
