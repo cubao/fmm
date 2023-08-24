@@ -103,5 +103,13 @@ example/notebook/a.csv
 example/data/ubodt.json
 example/data/ubodt.txt
 example/data/mr.txt
+example/notebook/network.geojson
 
 /*.json
+
+cache
+network
+network-new.tar.gz
+osm_mapmatching.py
+stockholm
+stockholm.tar.gz

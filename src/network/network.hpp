@@ -208,8 +208,11 @@ class Network
         RapidjsonAllocator allocator;
         return to_json(allocator);
     }
+    std::string export_geojson() const;
+    bool export_geojson(const std::string &path) const;
 
   private:
+    RapidjsonValue __export_geojson() const;
     void read_ogr_file(const std::string &filename, const std::string &id_name,
                        const std::string &source_name,
                        const std::string &target_name);
